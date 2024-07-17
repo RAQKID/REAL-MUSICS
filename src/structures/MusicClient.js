@@ -24,10 +24,10 @@ module.exports = class MusicClient extends Client {
             ? new LavasfyClient({
                 clientID: process.env.SPOTIFY_ID,
                 clientSecret: process.env.SPOTIFY_SECRET,
-                playlistLoadLimit: process.env.SPOTIFY_PLAYLIST_PAGE_LIMIT,
+                playlistLoadLimit: Number(process.env.SPOTIFY_PLAYLIST_PAGE_LIMIT),
                 audioOnlyResults: true,
                 useSpotifyMetadata: true
-            }, [...this.manager.nodes.values()])
+            }, this.manager.nodes.get('main'))
             : null;
 
         this.prefix = process.env.PREFIX.toLowerCase();
@@ -50,19 +50,27 @@ module.exports = class MusicClient extends Client {
 
     /** @private */
     async loadCommands() {
-        const commands = await readdir(join(__dirname, '..', 'commands'));
-        for (const commandFile of commands) {
-            const command = require(`../commands/${commandFile}`);
-            this.commands.set(command.name, command);
+        try {
+            const commands = await readdir(join(__dirname, '..', 'commands'));
+            for (const commandFile of commands) {
+                const command = require(`../commands/${commandFile}`);
+                this.commands.set(command.name, command);
+            }
+        } catch (error) {
+            console.error('Error loading commands:', error);
         }
     }
 
     /** @private */
     async loadEventListeners() {
-        const listeners = await readdir(join(__dirname, '..', 'listeners'));
-        for (const listenerFile of listeners) {
-            const listener = require(`../listeners/${listenerFile}`);
-            this.on(listener.name, (...args) => listener.exec(this, ...args));
+        try {
+            const listeners = await readdir(join(__dirname, '..', 'listeners'));
+            for (const listenerFile of listeners) {
+                const listener = require(`../listeners/${listenerFile}`);
+                this.on(listener.name, (...args) => listener.exec(this, ...args));
+            }
+        } catch (error) {
+            console.error('Error loading event listeners:', error);
         }
     }
 
