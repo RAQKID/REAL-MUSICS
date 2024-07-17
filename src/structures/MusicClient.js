@@ -3,7 +3,7 @@ const { Client, Collection } = require("discord.js");
 const { promises: { readdir } } = require("fs");
 const { join } = require("path");
 const { LavasfyClient } = require("lavasfy");
-
+const express = require('express');
 require("../extensions");
 
 module.exports = class MusicClient extends Client {
@@ -28,20 +28,31 @@ module.exports = class MusicClient extends Client {
                 useSpotifyMetadata: true
             }, [...[...this.manager.nodes.values()]])
             : null;
-
         this.prefix = process.env.PREFIX.toLowerCase();
+
+     
+        this.app = express();
+        this.port = process.env.PORT || 3000;
     }
 
     build() {
         this.loadCommands();
         this.loadEventListeners();
         this.login(process.env.TOKEN);
-
         this.manager
             .on("ready", node => console.log(`Node ${node.id} is ready!`))
             .on("disconnect", (ws, node) => console.log(`Node ${node.id} disconnected.`))
             .on("reconnecting", (node) => console.log(`Node ${node.id} tries to reconnect.`))
             .on("error", (error, node) => console.log(`Node ${node.id} got an error: ${error.message}`));
+        
+    
+        this.app.get('/', (req, res) => {
+            res.send('Bot is alive!');
+        });
+
+        this.app.listen(this.port, () => {
+            console.log(`Express server running on port ${this.port} to keep the bot alive.`);
+        });
     }
 
     /** @private */
