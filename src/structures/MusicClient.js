@@ -1,3 +1,4 @@
+const express = require('express');
 const { Manager } = require("@lavacord/discord.js");
 const { Client, Collection } = require("discord.js");
 const { promises: { readdir } } = require("fs");
@@ -30,6 +31,9 @@ module.exports = class MusicClient extends Client {
             : null;
 
         this.prefix = process.env.PREFIX.toLowerCase();
+
+        // Set up Express server
+        this.setupExpress();
     }
 
     build() {
@@ -60,5 +64,19 @@ module.exports = class MusicClient extends Client {
             const listener = require(`../listeners/${listenerFile}`);
             this.on(listener.name, (...args) => listener.exec(this, ...args));
         }
+    }
+
+    /** @private */
+    setupExpress() {
+        const app = express();
+        const port = 3000;
+
+        app.get('/', (req, res) => {
+            res.send('Bot is alive!');
+        });
+
+        app.listen(port, () => {
+            console.log(`Express server running on port ${port} to keep the bot alive.`);
+        });
     }
 };
